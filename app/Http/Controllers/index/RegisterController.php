@@ -62,14 +62,6 @@ class RegisterController extends Controller
         //登陆的ip
         $login_ip = $_SERVER['REMOTE_ADDR'];
         $data = $request->all();
-        $key = 'login:count:' . $data['user_name'];
-//        dd($key);
-        //检测用户是否已被锁定
-        $count = Redis::get($key);
-//        dd($count);
-        if ($count >5) {
-            echo "已被锁定";exit;
-        }
         //            $pwd= password_hash($data['user_pwd'], PASSWORD_DEFAULT);
         //手机号或者邮箱或者用户名登陆(一条中的所有数据)
         $res = UserModel::where(['user_name' => $data['user_name']])
@@ -79,8 +71,24 @@ class RegisterController extends Controller
         if(empty($res)){
             return redirect('/login/login')->with('msg','账号不存在');
         }
+        //检测用户是否已被锁定
+        $key = 'login:count:' . $res['user_id'];
+        //剩余时间
+        $login_time = ceil(Redis::TTL('login_time:'.$key) / 60);
+        if(!empty($login_time)){
+            return redirect('login/login')->with(['msg' => '该账户密码输入错误次数过多,已锁定一小时,剩余时间' . $login_time . '分钟']);
+        }
+        $count = Redis::get($key);
+        if ($count >5) {
+            //过期时间
+            Redis::setex('login_time:'.$key,3600,Redis::get($key));
+            return redirect('/login/login')->with('msg','错误次数过多，已被锁定一小时');
+        }
             //判断如果有数据执行其他字段的修改
             if (password_verify($data['user_pwd'], $res['user_pwd'])) {
+                // 如果用户登录成功 并且 账号的status(状态)不在锁定状态，也就是说用户的错误次数没有超过一定的限制
+                // 下边这个操作是讲该用户的登录的错误次数设置为null(空)
+                Redis::setex($key,1,Redis::get($key));
                 $loginInfo = ['last_login' => time(), 'last_ip' => $login_ip, 'login_count' => $res['login_count'] + 1];
                 $login = UserModel::where('user_id', $res['user_id'])->update($loginInfo);
                 return redirect('/index/index');
@@ -91,10 +99,13 @@ class RegisterController extends Controller
                  * 使用Redis实现计数（incr）
                  * 使用expire实现时间控制
                  */
-                //密码不正确 纪录错误错误
-                $key = 'login:count:' . $data['user_name'];
-                $count = Redis::incr($key);
-                return redirect('/login/login')->with('msg',"错误次数为：" . "$count");
+                //如果错误的次数为空设置十分钟时间内
+                if(empty(Redis::get($key))){
+                    Redis::setex($key,600,Redis::get($key));
+                }
+                //设置错误次数($key上面已经定义所以不用定义了)
+                Redis::incr($key);
+                return redirect('/login/login')->with('msg',"错误次数为：" .Redis::get($key));
             }
         }
     /** 首页 */
