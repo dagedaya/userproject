@@ -79,7 +79,7 @@ class RegisterController extends Controller
             return redirect('login/login')->with(['msg' => '该账户密码输入错误次数过多,已锁定一小时,剩余时间' . $login_time . '分钟']);
         }
         $count = Redis::get($key);
-        if ($count >5) {
+        if ($count>=4) {
             //过期时间
             Redis::setex('login_time:'.$key,3600,Redis::get($key));
             return redirect('/login/login')->with('msg','错误次数过多，已被锁定一小时');
@@ -90,8 +90,10 @@ class RegisterController extends Controller
                 // 下边这个操作是讲该用户的登录的错误次数设置为null(空)
                 Redis::setex($key,1,Redis::get($key));
                 $loginInfo = ['last_login' => time(), 'last_ip' => $login_ip, 'login_count' => $res['login_count'] + 1];
+               session(['user_id'=>$res['user_id'],'user_name'=>$res['user_name'],'user_email'=>$res['user_email'],'user_tel'=>$res['user_tel']]);
                 $login = UserModel::where('user_id', $res['user_id'])->update($loginInfo);
-                return redirect('/index/index');
+                return redirect('/admin/index');
+                //用户登录成功把用户的信息存入session
             } else {
                 /**
                  *  10分钟内，用户连续输入密码错误超过5次，锁定用户 60分钟（禁止登录）。
@@ -109,7 +111,7 @@ class RegisterController extends Controller
             }
         }
     /** 首页 */
-    public function index(){
-        echo "你好 laravel";
-    }
+//    public function index(){
+//        echo "你好 laravel";
+//    }
 }
