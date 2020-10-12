@@ -21,11 +21,10 @@ Route::get('/user/store','index\RegisterController@store');//注册页面执行�
 Route::get('/login/login','index\RegisterController@login');//登陆页面的视图
 Route::get('/login/logindo','index\RegisterController@logindo');//登陆页面的视图
 Route::get('/index/index','index\RegisterController@index');//登陆成功跳转到首页
-Route::prefix('admin/index')->middleware('login')->group(function() {
-        // 后台首页
-        Route::get('/', 'admin\AdminController@index');
+Route::prefix('user/center')->middleware('login')->group(function() {
+        Route::get('/', 'index\RegisterController@center');// 用户中心
 });
-Route::get('admin/exit','admin\AdminController@exit');//退出
+Route::get('user/exit','index\RegisterController@exit');//退出
 
 
 

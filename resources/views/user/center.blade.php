@@ -8,7 +8,7 @@
     <title>Document</title>
 </head>
 <body>
-    <h1>后台首页</h1>
-    <a href="{{url('/admin/exit')}}">退出</a>
+    <h1>用户中心页面</h1>
+    <a href="{{url('/user/exit')}}">退出</a>
 </body>
 </html>

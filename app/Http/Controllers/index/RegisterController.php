@@ -25,6 +25,7 @@ class RegisterController extends Controller
     /** 注册添加 */
     public function store(Request $request){
         $data=$request->all();
+        //进行非空验证
          if(empty($data['user_name'])){
              return redirect('/user/register')->with('msg','用户名不可为空');
          }
@@ -92,7 +93,7 @@ class RegisterController extends Controller
                 $loginInfo = ['last_login' => time(), 'last_ip' => $login_ip, 'login_count' => $res['login_count'] + 1];
                session(['user_id'=>$res['user_id'],'user_name'=>$res['user_name'],'user_email'=>$res['user_email'],'user_tel'=>$res['user_tel']]);
                 $login = UserModel::where('user_id', $res['user_id'])->update($loginInfo);
-                return redirect('/admin/index');
+                return redirect('/index/index');
                 //用户登录成功把用户的信息存入session
             } else {
                 /**
@@ -111,7 +112,20 @@ class RegisterController extends Controller
             }
         }
     /** 首页 */
-//    public function index(){
-//        echo "你好 laravel";
-//    }
+    public function index(){
+        return view('/user/index');
+    }
+    //用户中心
+    public function center(){
+//        echo "hah";
+        return view('user/center');
+    }
+    //退出
+    public function exit(Request $request){
+        session(['user_id'=>null,'user_name'=>null,'user_tel'=>null,'user_email'=>null]);
+        $user_id = $request->session()->get('user_id');
+        if(empty($user_id)){
+            return redirect('/login/login')->with(['msg'=>'退出成功']);
+        }
+    }
 }

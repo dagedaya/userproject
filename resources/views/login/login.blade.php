@@ -6,6 +6,11 @@
           content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <style>
+        a{
+            font-size:14px;
+        }
+    </style>
 </head>
 <body>
 <table>
@@ -29,7 +34,7 @@
         </tr>
         <tr>
             <td><input type="submit" value="登陆"></td>
-            <td></td>
+            <td><a href="{{'/user/register'}}">还没有？立即注册</a></td>
         </tr>
     </form>
 </table>
